@@ -56,10 +56,14 @@ spec:
               mountPath: /rulesfiles
             - name: falcoctl-config
               mountPath: /etc/falcoctl
+            - name: tmp
+              mountPath: /tmp
+            - name: sigstore
+              mountPath: /.sigstore
       containers:
         - name: falco-k8saudit
-          image: docker.io/falcosecurity/falco:0.40.0-debian
-          imagePullPolicy: IfNotPresent
+          image: "{{ .Values.auditPlugin.k8saudit.image.repository }}:{{ .Values.auditPlugin.k8saudit.image.tag }}"
+          imagePullPolicy: {{ .Values.auditPlugin.k8saudit.image.pullPolicy }}
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
@@ -124,6 +128,8 @@ spec:
         - name: tmp
           emptyDir: {}
         - name: var-run
+          emptyDir: {}
+        - name: sigstore
           emptyDir: {}
         - name: falcoctl-config
           configMap:

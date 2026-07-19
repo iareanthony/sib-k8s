@@ -1,0 +1,228 @@
+global:
+  namespace: security
+
+auditPlugin:
+  type: k8saudit
+
+  # Start with runtime syscall monitoring only.
+  # We will enable the API-server audit webhook later.
+  k8saudit:
+    enabled: true
+
+    image:
+      repository: docker.io/falcosecurity/falco
+      tag: 0.44.1-debian
+      pullPolicy: IfNotPresent
+
+syscallMonitoring:
+  enabled: true
+  driverKind: modern_ebpf
+  bufSizePreset: 4
+  dropFailedExit: false
+
+analysis:
+  enabled: true
+
+  obfuscation:
+    level: standard
+
+  llm:
+    provider: ollama
+
+    ollama:
+      url: http://192.168.50.7:11434
+      model: llama3.1:8b
+falco:
+  enabled: true
+
+  controller:
+    kind: daemonset
+
+  driver:
+    enabled: true
+    kind: modern_ebpf
+
+  collectors:
+    enabled: true
+
+  falcoctl:
+    artifact:
+      install:
+        enabled: true
+      follow:
+        enabled: true
+
+    config:
+      artifact:
+        install:
+          resolveDeps: false
+          refs:
+            - falco-rules:4
+
+        follow:
+          refs:
+            - falco-rules:4
+
+  falcosidekick:
+    enabled: false
+
+    webui:
+      redis:
+        customConfig: {}
+  customRules:
+    flaresolverr-exceptions.yaml: |-
+      - rule: Drop and execute new binary in container
+        condition: >
+          and not (
+            k8s.ns.name = streaming
+            and k8s.pod.name startswith flaresolverr-
+            and container.image.repository = ghcr.io/flaresolverr/flaresolverr
+            and proc.exepath = /app/chromedriver
+            and proc.pname = python
+            and user.name = flaresolverr
+          )
+        override:
+          condition: append
+  falco:
+    priority: warning
+
+    json_output: true
+    json_include_output_property: true
+    json_include_output_fields_property: true
+    json_include_tags_property: true
+
+    metrics:
+      enabled: false
+      interval: 1h
+
+    rules_files:
+      - /etc/falco/falco_rules.yaml
+      - /etc/falco/rules.d
+    
+    plugins:
+      - name: container
+        library_path: libcontainer.so
+        init_config: ""
+        open_params: ""
+
+
+    load_plugins:
+      - container
+
+    http_output:
+      enabled: true
+      url: http://sib-k8s-falcosidekick.security.svc.cluster.local:2801
+      insecure: true
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+    limits:
+      cpu: "1"
+      memory: 1Gi  
+
+falcosidekick:
+  enabled: true
+  replicaCount: 1
+
+  webui:
+    enabled: false
+
+  config:
+    debug: false
+
+    loki:
+      hostport: http://sib-k8s-loki.security.svc.cluster.local:3100
+      minimumpriority: ""
+
+    # Analyzer is disabled, so do not send alerts to its webhook.
+    webhook:
+      address: ""
+      minimumpriority: ""
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+loki:
+  enabled: true
+  deploymentMode: SingleBinary
+
+  singleBinary:
+    replicas: 1
+
+    persistence:
+      enabled: true
+      storageClass: longhorn
+      size: 20Gi
+
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 2Gi
+
+  loki:
+    auth_enabled: false
+    commonConfig:
+      replication_factor: 1
+      ring:
+        kvstore:
+          store: inmemory
+    memberlistConfig:
+      join_members: []      
+    schemaConfig:
+      configs:
+        - from: "2024-01-01"
+          store: tsdb
+          object_store: filesystem
+          schema: v13
+          index:
+            prefix: index_
+            period: 24h
+
+    storage:
+      type: filesystem
+      filesystem:
+        chunks_directory: /var/loki/chunks
+        rules_directory: /var/loki/rules
+
+    limits_config:
+      retention_period: 168h
+      max_query_series: 10000
+      ingestion_rate_mb: 10
+      ingestion_burst_size_mb: 20
+
+    compactor:
+      working_directory: /var/loki/retention
+      delete_request_store: filesystem
+      retention_enabled: true
+
+  backend:
+    replicas: 0
+
+  read:
+    replicas: 0
+
+  write:
+    replicas: 0
+
+  gateway:
+    enabled: false
+
+  chunksCache:
+    enabled: false
+
+  resultsCache:
+    enabled: false
+
+grafana:
+  enabled: false
