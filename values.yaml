@@ -350,6 +350,10 @@ falcosidekick:
   # -- Enable Falcosidekick
   enabled: true
 
+  # -- Pin to a supported Alpine-based release
+  image:
+    tag: "2.34.1"
+
   # -- Number of replicas
   replicaCount: 1
 
@@ -405,6 +409,12 @@ falcosidekick:
 loki:
   # -- Enable Loki deployment
   enabled: true
+
+  # -- Pin the rules sidecar to a supported Alpine-based release
+  sidecar:
+    image:
+      repository: kiwigrid/k8s-sidecar
+      tag: "2.8.1"
 
   # -- Deployment mode: SingleBinary, SimpleScalable, Distributed
   deploymentMode: SingleBinary
