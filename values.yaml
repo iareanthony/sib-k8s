@@ -285,8 +285,7 @@ falco:
           tag: 0.44.1-gcc15
           pullPolicy: Always
 
-  # worker03 uses a separate modern-eBPF release because Secure Boot rejects
-  # the locally compiled module until a Machine Owner Key is enrolled.
+  # All cluster nodes are labeled for the GCC 15 kernel-module driver.
   nodeSelector:
     falco-driver: kmod
 
