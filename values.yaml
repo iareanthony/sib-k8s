@@ -275,7 +275,20 @@ falco:
   # -- Driver configuration for syscall monitoring
   driver:
     enabled: true
-    kind: modern_ebpf
+    kind: kmod
+    loader:
+      enabled: true
+      initContainer:
+        image:
+          registry: ghcr.io
+          repository: iareanthony/sib-k8s-falco-driver-loader
+          tag: 0.44.1-gcc15
+          pullPolicy: Always
+
+  # worker03 uses a separate modern-eBPF release because Secure Boot rejects
+  # the locally compiled module until a Machine Owner Key is enrolled.
+  nodeSelector:
+    falco-driver: kmod
 
   # -- Collectors for container metadata
   collectors:
