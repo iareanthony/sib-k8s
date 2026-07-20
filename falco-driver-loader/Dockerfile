@@ -4,7 +4,7 @@ FROM docker.io/falcosecurity/falco-driver-loader:0.44.1
 # options that the upstream loader image's GCC 12 cannot understand.
 RUN echo "deb http://deb.debian.org/debian sid main" > /etc/apt/sources.list.d/sid.list \
     && apt-get update \
-    && apt-get install -y --no-install-recommends gcc-15 \
+    && apt-get install -y --no-install-recommends binutils dwarves gcc-15 \
     && ln -sf /usr/bin/gcc-15 /usr/bin/gcc \
     && rm -rf /var/lib/apt/lists/* \
     && gcc --version
