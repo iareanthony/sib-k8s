@@ -276,6 +276,10 @@ falco:
   driver:
     enabled: true
     kind: modern_ebpf
+    modernEbpf:
+      # Keep one ring buffer per CPU. Shared buffers trigger malformed syscall
+      # frames on Ubuntu 26.04 nodes running Linux 7.0.
+      cpusForEachBuffer: 1
 
   # -- Collectors for container metadata
   collectors:
