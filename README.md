@@ -161,6 +161,19 @@ curl http://localhost:8080/health
 
 All containers run with a hardened security context (`runAsNonRoot`, `readOnlyRootFilesystem`, `drop ALL` capabilities, `seccompProfile: RuntimeDefault`). The only exception is `hostNetwork` for the webhook receiver, which is required for API server connectivity. See `.trivyignore` for documented exceptions.
 
+For generic Kubernetes webhook deployments, label the dedicated namespace for
+the privileged Pod Security profile before installing or upgrading the chart:
+
+```bash
+kubectl label namespace security \
+  pod-security.kubernetes.io/enforce=privileged \
+  pod-security.kubernetes.io/audit=privileged \
+  pod-security.kubernetes.io/warn=privileged --overwrite
+```
+
+This exception is required by the k8saudit webhook receiver's host networking
+and host port. Keep the exception scoped to the dedicated security namespace.
+
 ```bash
 # Scan for vulnerabilities
 trivy fs --scanners vuln,secret,misconfig .

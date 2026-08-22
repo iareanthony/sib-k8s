@@ -102,12 +102,15 @@ spec:
               path: /health
               port: http
             initialDelaySeconds: 10
+            timeoutSeconds: 5
             periodSeconds: 30
+            failureThreshold: 6
           readinessProbe:
             httpGet:
               path: /ready
               port: http
             initialDelaySeconds: 5
+            timeoutSeconds: 5
             periodSeconds: 10
           resources:
             {{- toYaml .Values.analysis.resources | nindent 12 }}
