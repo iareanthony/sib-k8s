@@ -96,6 +96,19 @@ falco:
           )
         override:
           condition: append
+      - rule: Drop and execute new binary in container
+        condition: >
+          and not (
+            k8s.ns.name = streaming
+            and k8s.pod.name startswith jellyfin-
+            and container.name = jellyfin
+            and container.image.repository = lscr.io/linuxserver/jellyfin
+            and proc.exepath = /usr/bin/ssh
+            and proc.pname = python3
+            and user.name = abc
+          )
+        override:
+          condition: append
   falco:
     priority: warning
 
