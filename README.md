@@ -174,6 +174,12 @@ kubectl label namespace security \
 This exception is required by the k8saudit webhook receiver's host networking
 and host port. Keep the exception scoped to the dedicated security namespace.
 
+The AMFTech values include narrowly scoped runtime exceptions for known
+container behavior. Jellyfin rffmpeg workers are exempt from `Drop and execute
+new binary in container` only when `sshd` launches
+`/usr/lib/openssh/sshd-session` in the `streaming/jellyfin-transcode-*` worker
+containers; other processes and Falco rules remain active for those pods.
+
 ```bash
 # Scan for vulnerabilities
 trivy fs --scanners vuln,secret,misconfig .

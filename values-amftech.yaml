@@ -83,6 +83,19 @@ falco:
           )
         override:
           condition: append
+    jellyfin-transcode-exceptions.yaml: |-
+      - rule: Drop and execute new binary in container
+        condition: >
+          and not (
+            k8s.ns.name = streaming
+            and k8s.pod.name startswith jellyfin-transcode-
+            and container.name = worker
+            and container.image.repository = lscr.io/linuxserver/jellyfin
+            and proc.exepath = /usr/lib/openssh/sshd-session
+            and proc.pname = sshd
+          )
+        override:
+          condition: append
   falco:
     priority: warning
 
