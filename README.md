@@ -141,11 +141,15 @@ kubectl port-forward -n sib-k8s svc/sib-k8s-analysis 8080:8080
 curl http://localhost:8080/health
 ```
 
+Grafana dashboard ConfigMaps are generated from the JSON files in
+`dashboards/loki/`. Keep each dashboard in that directory as the single source
+of truth rather than maintaining standalone generated ConfigMaps.
+
 ## Chart Dependencies
 
 | Chart | Version | Repository |
 |-------|---------|------------|
-| Falco | 4.20.0 | falcosecurity |
+| Falco | 9.1.0 | falcosecurity |
 | Falcosidekick | 0.9.5 | falcosecurity |
 | Loki | 6.24.0 | grafana |
 | Grafana | 8.8.2 | grafana |
